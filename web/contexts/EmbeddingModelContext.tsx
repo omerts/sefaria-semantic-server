@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-export type EmbeddingModel = "BAAI/bge-m3" | "MPA/sambert";
+export type EmbeddingModel = "BAAI/bge-m3" | "MPA/sambert" | "imvladikon/sentence-transformers-alephbert";
 
 interface EmbeddingModelContextType {
   selectedModel: EmbeddingModel;
@@ -13,7 +13,11 @@ interface EmbeddingModelContextType {
 const EmbeddingModelContext = createContext<EmbeddingModelContextType | undefined>(undefined);
 
 const DEFAULT_MODEL: EmbeddingModel = "BAAI/bge-m3";
-const AVAILABLE_MODELS: EmbeddingModel[] = ["BAAI/bge-m3", "MPA/sambert"];
+const AVAILABLE_MODELS: EmbeddingModel[] = [
+  "BAAI/bge-m3", 
+  "MPA/sambert", 
+  "imvladikon/sentence-transformers-alephbert"
+];
 
 export function EmbeddingModelProvider({ children }: { children: React.ReactNode }) {
   const [selectedModel, setSelectedModelState] = useState<EmbeddingModel>(DEFAULT_MODEL);

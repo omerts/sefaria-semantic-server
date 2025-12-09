@@ -32,8 +32,14 @@ class Embedder:
             # Set timeout for HuggingFace downloads
             os.environ["HF_HUB_DOWNLOAD_TIMEOUT"] = "600"  # 10 minutes timeout
 
-            # Check if it's sambert (sentence-transformers) or bge-m3 (FlagEmbedding)
-            if self.model_name == "MPA/sambert" or "sambert" in self.model_name.lower():
+            # Check if it's sambert, alephbert (sentence-transformers) or bge-m3 (FlagEmbedding)
+            is_sentence_transformer_model = (
+                self.model_name == "MPA/sambert"
+                or "sambert" in self.model_name.lower()
+                or self.model_name == "imvladikon/sentence-transformers-alephbert"
+                or "alephbert" in self.model_name.lower()
+            )
+            if is_sentence_transformer_model:
                 # For HuggingFace models, use huggingface_hub directly to download first
                 # This is more reliable than letting sentence-transformers handle the download
 
@@ -45,9 +51,15 @@ class Embedder:
                     print(
                         f"Downloading model {self.model_name} using huggingface_hub..."
                     )
-                    print(
-                        "⚠ This may take several minutes for first-time download (737MB)..."
-                    )
+                    # AlephBERT is typically smaller than sambert
+                    if "alephbert" in self.model_name.lower():
+                        print(
+                            "⚠ This may take several minutes for first-time download..."
+                        )
+                    else:
+                        print(
+                            "⚠ This may take several minutes for first-time download (737MB)..."
+                        )
 
                     # Download to HuggingFace cache directory
                     cache_dir = os.path.join(
@@ -90,7 +102,7 @@ class Embedder:
                                 "💡 Tip: Try running the pipeline again - it will resume from where it stopped."
                             )
                             print(
-                                "💡 Or download manually: python -c \"from huggingface_hub import snapshot_download; snapshot_download('MPA/sambert')\""
+                                f"💡 Or download manually: python -c \"from huggingface_hub import snapshot_download; snapshot_download('{self.model_name}')\""
                             )
                             raise
                         else:
@@ -101,7 +113,8 @@ class Embedder:
 
                     print(f"Loading model from local cache...")
                     self.model = SentenceTransformer(local_dir, device="cpu")
-                    self.embedding_dim = 768  # sambert dimension
+                    # Both sambert and AlephBERT use 768 dimensions
+                    self.embedding_dim = 768
                     print("✓ Model loaded")
 
                 except ImportError:
@@ -110,14 +123,23 @@ class Embedder:
                     from sentence_transformers import SentenceTransformer
 
                     print(f"Loading Hebrew embedding model: {self.model_name}...")
-                    print(
-                        "⚠ This may take several minutes for first-time download (737MB)..."
+                    # AlephBERT is smaller than sambert, adjust message if needed
+                    model_size_msg = (
+                        "⚠ This may take several minutes for first-time download..."
                     )
+                    if "alephbert" in self.model_name.lower():
+                        model_size_msg = (
+                            "⚠ This may take several minutes for first-time download..."
+                        )
+                    else:
+                        model_size_msg = "⚠ This may take several minutes for first-time download (737MB)..."
+                    print(model_size_msg)
                     self.model = SentenceTransformer(
                         self.model_name,
                         trust_remote_code=True,
                         device="cpu",
                     )
+                    # Both sambert and AlephBERT use 768 dimensions
                     self.embedding_dim = 768
                     print("✓ Model loaded")
 
@@ -133,6 +155,7 @@ class Embedder:
                         self.model = SentenceTransformer(
                             self.model_name, trust_remote_code=True, device="cpu"
                         )
+                        # Both sambert and AlephBERT use 768 dimensions
                         self.embedding_dim = 768
                         print("✓ Model loaded directly")
                     except Exception as e2:
