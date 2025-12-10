@@ -147,6 +147,16 @@ class BaseNormalizer:
         if "index" in raw and isinstance(raw, dict):
             self.base_ref = raw["index"].get("title", book)
 
+        # Extract Hebrew title
+        self.he_title = None
+        if isinstance(raw, dict):
+            # Try to get from heTitle field
+            if "heTitle" in raw:
+                self.he_title = raw["heTitle"]
+            # Also check in index
+            elif "index" in raw and isinstance(raw["index"], dict):
+                self.he_title = raw["index"].get("heTitle")
+
         # Extract mapping metadata
         self.section_names = (
             raw.get("sectionNames", []) if isinstance(raw, dict) else []
@@ -372,6 +382,7 @@ class TalmudNormalizer(BaseNormalizer):
                     text=he_seg if he_seg else "",
                     links=self.links if entry_idx == 0 else [],
                     address_types=self.address_types,
+                    he_title=self.he_title,
                 )
                 entries.append(entry)
                 entry_idx += 1
@@ -476,6 +487,7 @@ class TanakhNormalizer(BaseNormalizer):
                     text=he_verse,
                     links=self.links if entry_idx == 0 else [],
                     address_types=self.address_types,
+                    he_title=self.he_title,
                 )
                 entries.append(entry)
                 entry_idx += 1
@@ -568,6 +580,7 @@ class MishnahNormalizer(BaseNormalizer):
                     text=he_mishnah if he_mishnah else "",
                     links=self.links if entry_idx == 0 else [],
                     address_types=self.address_types,
+                    he_title=self.he_title,
                 )
                 entries.append(entry)
                 entry_idx += 1
@@ -696,6 +709,7 @@ class ShulchanArukhNormalizer(BaseNormalizer):
                                 text=he_seif if he_seif else "",
                                 links=self.links if entry_idx == 0 else [],
                                 address_types=self.address_types,
+                                he_title=self.he_title,
                             )
                             entries.append(entry)
                             entry_idx += 1
@@ -758,6 +772,7 @@ class ShulchanArukhNormalizer(BaseNormalizer):
                             text=he_seif if he_seif else "",
                             links=self.links if entry_idx == 0 else [],
                             address_types=self.address_types,
+                            he_title=self.he_title,
                         )
                         entries.append(entry)
                         entry_idx += 1

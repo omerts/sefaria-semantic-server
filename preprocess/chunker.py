@@ -73,6 +73,70 @@ def number_to_hebrew(n: int) -> str:
     return result
 
 
+def convert_to_heb_sefaria_ref(sefaria_ref: str, he_title: Optional[str] = None) -> str:
+    """
+    Converts sefaria_ref to Hebrew format (heb_sefaria_ref)
+
+    Replaces:
+    1. Book name with Hebrew book name (from he_title)
+    2. Numbers with Hebrew letters
+
+    Args:
+        sefaria_ref: English Sefaria reference (e.g., "Genesis.1:1", "Berakhot.2a:1")
+        he_title: Hebrew book title (optional)
+
+    Returns:
+        Hebrew Sefaria reference (e.g., "בראשית.א:א", "ברכות.ב:א")
+    """
+    if not sefaria_ref:
+        return ""
+
+    # Split into book name and reference parts
+    parts = sefaria_ref.split(".", 1)
+    if len(parts) < 2:
+        # No reference parts, just return Hebrew title if available
+        return he_title if he_title else sefaria_ref
+
+    book_name = parts[0]
+    ref_parts = parts[1]
+
+    # Use Hebrew title if available, otherwise keep English
+    he_book_name = he_title if he_title else book_name
+
+    # Convert reference parts: numbers to Hebrew letters
+    # Handle formats like "1:1", "2a:1", "34:1", etc.
+    def convert_number_in_ref(match):
+        """Convert a number in the reference to Hebrew"""
+        num_str = match.group(0)
+        try:
+            num = int(num_str)
+            return number_to_hebrew(num)
+        except (ValueError, ValueError):
+            return num_str
+
+    # Replace numbers in the reference (but keep 'a'/'b' for Talmud)
+    # Pattern: match numbers that are not followed by 'a' or 'b'
+    # For Talmud format like "2a:1", we want to convert "2" and "1" separately
+    # Split by ':' first, then convert each part
+    ref_sections = ref_parts.split(":")
+    converted_sections = []
+
+    for section in ref_sections:
+        # Handle Talmud format: "2a" -> convert "2" to Hebrew, keep "a"
+        talmud_match = re.match(r"(\d+)([ab])", section)
+        if talmud_match:
+            num = int(talmud_match.group(1))
+            amud = talmud_match.group(2)
+            converted_sections.append(number_to_hebrew(num) + amud)
+        else:
+            # Regular number: convert to Hebrew
+            converted_sections.append(re.sub(r"\d+", convert_number_in_ref, section))
+
+    he_ref = ":".join(converted_sections)
+
+    return f"{he_book_name}.{he_ref}"
+
+
 def extract_chapter_verse(sefaria_ref: str) -> Tuple[Optional[int], Optional[int]]:
     """
     Extracts chapter and verse numbers from sefaria_ref
@@ -302,6 +366,9 @@ def chunk_tanakh(entry: TextEntry) -> List[Dict[str, Any]]:
             "chunk_id": f"{entry.id}-verse0",
             "parent_id": entry.id,
             "sefaria_ref": entry.sefaria_ref,
+            "heb_sefaria_ref": convert_to_heb_sefaria_ref(
+                entry.sefaria_ref, getattr(entry, "he_title", None)
+            ),
             "book": entry.book,
             "category": entry.category,
             "text": verses[0],
@@ -319,6 +386,9 @@ def chunk_tanakh(entry: TextEntry) -> List[Dict[str, Any]]:
                 "chunk_id": f"{entry.id}-verse{i}",
                 "parent_id": entry.id,
                 "sefaria_ref": verse_ref,
+                "heb_sefaria_ref": convert_to_heb_sefaria_ref(
+                    verse_ref, getattr(entry, "he_title", None)
+                ),
                 "book": entry.book,
                 "category": entry.category,
                 "text": verse,
@@ -341,6 +411,9 @@ def chunk_mishnah(entry: TextEntry) -> List[Dict[str, Any]]:
         "chunk_id": f"{entry.id}-mishnah",
         "parent_id": entry.id,
         "sefaria_ref": entry.sefaria_ref,
+        "heb_sefaria_ref": convert_to_heb_sefaria_ref(
+            entry.sefaria_ref, getattr(entry, "he_title", None)
+        ),
         "book": entry.book,
         "category": entry.category,
         "text": entry.text,
@@ -361,6 +434,9 @@ def _create_talmud_chunk(
         "chunk_id": f"{start_entry.id}-{chunk_type}{len(chunks)}",
         "parent_id": start_entry.id,
         "sefaria_ref": start_entry.sefaria_ref,
+        "heb_sefaria_ref": convert_to_heb_sefaria_ref(
+            start_entry.sefaria_ref, getattr(start_entry, "he_title", None)
+        ),
         "book": start_entry.book,
         "category": start_entry.category,
         "text": chunk_text,
@@ -536,6 +612,9 @@ def chunk_halacha(entry: TextEntry) -> List[Dict[str, Any]]:
             "chunk_id": f"{entry.id}-halacha{i}",
             "parent_id": entry.id,
             "sefaria_ref": entry.sefaria_ref,
+            "heb_sefaria_ref": convert_to_heb_sefaria_ref(
+                entry.sefaria_ref, getattr(entry, "he_title", None)
+            ),
             "book": entry.book,
             "category": entry.category,
             "text": part,
@@ -591,6 +670,9 @@ def create_default_chunk(entry: TextEntry, position: int) -> Dict[str, Any]:
         "chunk_id": f"{entry.id}-chunk{position}",
         "parent_id": entry.id,
         "sefaria_ref": entry.sefaria_ref,
+        "heb_sefaria_ref": convert_to_heb_sefaria_ref(
+            entry.sefaria_ref, getattr(entry, "he_title", None)
+        ),
         "book": entry.book,
         "category": entry.category,
         "text": entry.text,

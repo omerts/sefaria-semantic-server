@@ -101,6 +101,7 @@ class QdrantIndexer:
                 "chunk_id": chunk.get("chunk_id"),
                 "parent_id": chunk.get("parent_id"),
                 "sefaria_ref": chunk.get("sefaria_ref"),
+                "heb_sefaria_ref": chunk.get("heb_sefaria_ref"),
                 "book": chunk.get("book"),
                 "category": chunk.get("category", []),
                 "text": chunk.get("text"),

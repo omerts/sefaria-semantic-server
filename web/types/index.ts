@@ -28,6 +28,7 @@ export interface SearchRequest {
 
 export interface SearchResult {
   sefaria_ref: string;
+  heb_sefaria_ref?: string;
   book: string;
   category: string[];
   text: string;

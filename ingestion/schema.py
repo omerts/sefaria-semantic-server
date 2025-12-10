@@ -14,6 +14,7 @@ class TextEntry(BaseModel):
     address_types: Optional[List[str]] = (
         None  # addressTypes from Sefaria API (e.g., ["Perek", "Pasuk"])
     )
+    he_title: Optional[str] = None  # Hebrew book title
 
 
 class Chunk(BaseModel):

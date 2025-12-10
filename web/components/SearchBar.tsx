@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Search, Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { Search, Loader2 } from "lucide-react";
 
 interface SearchBarProps {
   onSearch: (query: string, bookPath?: string) => Promise<any>;
@@ -25,7 +25,7 @@ export default function SearchBar({
       const searchResults = await onSearch(searchQuery);
       setResults(searchResults);
     } catch (err) {
-      console.error('Search error:', err);
+      console.error("Search error:", err);
     } finally {
       setIsSearching(false);
     }
@@ -39,7 +39,7 @@ export default function SearchBar({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            onKeyPress={(e) => e.key === "Enter" && handleSearch()}
             placeholder="חפש בכל הספרים..."
             className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
@@ -78,10 +78,11 @@ export default function SearchBar({
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">
-                      {result.book} - {result.sefaria_ref}
+                      {result.book} -{" "}
+                      {result.heb_sefaria_ref || result.sefaria_ref}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      {result.category.join(' > ')}
+                      {result.category.join(" > ")}
                     </p>
                   </div>
                   <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
@@ -99,5 +100,3 @@ export default function SearchBar({
     </div>
   );
 }
-
-

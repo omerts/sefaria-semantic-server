@@ -31,6 +31,7 @@ class SearchResult(BaseModel):
     """Search result"""
 
     sefaria_ref: str
+    heb_sefaria_ref: Optional[str] = None  # Hebrew Sefaria reference
     book: str
     category: List[str]
     text: str
@@ -74,6 +75,7 @@ async def search(request: SearchRequest):
     3. Re-rank results
     4. Return sorted results
     """
+    print(request)
     if not request.query or not request.query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty")
 
@@ -162,6 +164,7 @@ async def search(request: SearchRequest):
         results.append(
             SearchResult(
                 sefaria_ref=payload.get("sefaria_ref", ""),
+                heb_sefaria_ref=payload.get("heb_sefaria_ref"),
                 book=payload.get("book", ""),
                 category=payload.get("category", []),
                 text=text,
